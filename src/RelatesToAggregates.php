@@ -14,7 +14,8 @@ trait RelatesToAggregates {
 	}
 
 	protected function hasCount($related, $foreignKey, $localKey = null) {
-		return $this->hasAggregate($related, 'count(1)', $foreignKey, $localKey);
+		return $this->hasAggregate($related, 'count(1)', $foreignKey, $localKey)
+			->default(0);
 	}
 
 }

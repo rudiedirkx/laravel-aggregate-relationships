@@ -7,10 +7,17 @@ use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 
 class HasAggregate extends HasOneOrMany {
 
+	protected $default = null;
 	protected $aggregate = '1';
 
 	public function aggregate($raw) {
 		$this->aggregate = $raw;
+
+		return $this;
+	}
+
+	public function default($value) {
+		$this->default = $value;
 
 		return $this;
 	}
@@ -65,7 +72,7 @@ class HasAggregate extends HasOneOrMany {
 	 */
 	public function initRelation(array $models, $relation) {
 		foreach ($models as $model) {
-			$model->setRelation($relation, 0);
+			$model->setRelation($relation, $this->default);
 		}
 
 		return $models;
