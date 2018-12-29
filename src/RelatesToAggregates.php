@@ -5,7 +5,7 @@ namespace rdx\aggrel;
 trait RelatesToAggregates {
 
 	protected function hasAggregate($related, $aggregate, $foreignKey, $localKey = null) {
-		$instance = $this->newRelatedInstance($related);
+		$instance = new $related();
 
 		$localKey = $localKey ?: $this->getKeyName();
 
