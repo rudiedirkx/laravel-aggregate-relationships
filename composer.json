@@ -1,0 +1,18 @@
+{
+    "name": "rdx/laravel-aggregate-relationships",
+    "description": "Make COUNT() and SUM() etc relationships in Laravel, without withCount()",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Rudie Dirkx",
+            "email": "github@hotblocks.nl"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "rdx\\aggrel\\": "src/"
+        }
+    },
+    "require": {}
+}
