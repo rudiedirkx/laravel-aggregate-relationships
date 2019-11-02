@@ -62,7 +62,7 @@ class HasManyScalar extends Relation {
 	 */
 	public function getResults() {
 		$this->addConstraints();
-		return $this->query->pluck($this->targetKey, $this->targetKey);
+		return $this->query->pluck($this->targetKey, $this->targetKey)->all();
 	}
 
 	/**
