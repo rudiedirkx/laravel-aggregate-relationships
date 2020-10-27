@@ -23,7 +23,7 @@ Add the trait to your models/base model:
 
 	use RelatesToAggregates;
 
-This exposes methods `hasCount(relatedClass, foreignKey)` and `hasAggregate(relatedClass, aggregateColumn, foreignKey)`
+This exposes methods `hasCount(relatedClass, foreignKey)`, `hasAggregate(relatedClass, aggregateColumn, foreignKey)` and `hasManyScalar(targetKey, targetTable, foreignKey)`:
 
 Define the relationship:
 
@@ -39,21 +39,27 @@ Define the relationship:
 		function current_balance() {
 			return $this->hasAggregate(Transaction::class, 'sum(money_change)', 'user_id');
 		}
+		
+		// List of payment uuids
+		function payment_refs() {
+			return $this->hasManyScalar('reference_uuid', 'transactions', 'user_id');
+		}
 	}
 
 And then eager load it **like normal relationships**:
 
-	$users = User::with(['address', 'fav_color', 'num_transactions', 'current_balance'])->get();
+	$users = User::with(['address', 'fav_color', 'num_transactions', 'current_balance', 'payment_refs'])->get();
 
 or later, **like normal relationships**, unlike Laravel's count:
 
 	$users = User::all();
-	$users->load(['address', 'fav_color', 'num_transactions', 'current_balance']);
+	$users->load(['address', 'fav_color', 'num_transactions', 'current_balance', 'payment_refs']);
 
 and if you can't/don't want to eager load it, lazy load it, **like a normal relationship**:
 
 	$user = User::find(123);
-	echo "Balance: {$user->current_balance} ({$user->num_transactions} transactions);"
+	echo "Balance: {$user->current_balance} ({$user->num_transactions} transactions): " .
+		implode(', ', $user->payment_refs);
 
 Recap
 ----
