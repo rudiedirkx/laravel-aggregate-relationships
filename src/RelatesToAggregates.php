@@ -7,25 +7,31 @@ use Illuminate\Database\Query\Expression;
 
 trait RelatesToAggregates {
 
-	protected function hasAggregate($related, $aggregate, $foreignKey, $localKey = null) {
-		$instance = new $related();
-
-		$localKey or $localKey = $this->getKeyName();
-
-		if (!($foreignKey instanceof Expression)) {
-			$foreignKey = $instance->getTable() . '.' . $foreignKey;
-		}
-
-		return (new HasAggregate($instance->newQuery(), $this, $foreignKey, $localKey))
-			->aggregate($aggregate);
+	protected function hasAggregateTable(string $table, string $aggregate, string $foreignKey, ?string $localKey = null) {
+		$query = $this->getConnection()->table($table);
+		return (new HasAggregateTable($query, $this, $foreignKey, $localKey))
+			->aggregate($aggregate)
+			->default(0);
 	}
 
-	protected function hasCount($related, $foreignKey, $localKey = null) {
+	protected function hasAggregate(string $related, string $aggregate, string $foreignKey, ?string $localKey = null) {
+		$instance = new $related();
+		$table = $instance->getTable();
+
+		return $this->hasAggregateTable($table, $aggregate, $foreignKey, $localKey);
+	}
+
+	protected function hasCount(string $related, string $foreignKey, ?string $localKey = null) {
 		return $this->hasAggregate($related, 'count(1)', $foreignKey, $localKey)
 			->default(0);
 	}
 
-	protected function hasManyScalar($targetKey, $targetTable, $foreignKey, $localKey = null) {
+	protected function hasCountTable(string $table, string $foreignKey, ?string $localKey = null) {
+		return $this->hasAggregateTable($table, 'count(1)', $foreignKey, $localKey)
+			->default(0);
+	}
+
+	protected function hasManyScalar(string $targetKey, string $targetTable, string $foreignKey, ?string $localKey = null) {
 		$conn = $this->getConnection();
 		$grammar = $conn->getQueryGrammar();
 		$query = new QueryBuilder($conn, $grammar, $conn->getPostProcessor());

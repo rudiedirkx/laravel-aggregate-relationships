@@ -13,7 +13,7 @@ class HasManyScalar extends Relation {
 	protected $foreignKey;
 	protected $localKey;
 
-	public function __construct(QueryBuilder $query, Model $parent, $targetKey, $foreignKey, $localKey = null) {
+	public function __construct(QueryBuilder $query, Model $parent, string $targetKey, string $foreignKey, ?string $localKey = null) {
 		$this->query = $query;
 		$this->parent = $parent;
 		$this->targetKey = $targetKey;
