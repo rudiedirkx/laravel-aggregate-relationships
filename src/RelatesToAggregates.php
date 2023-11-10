@@ -32,11 +32,8 @@ trait RelatesToAggregates {
 	}
 
 	protected function hasManyScalar(string $targetKey, string $targetTable, string $foreignKey, ?string $localKey = null) {
-		$conn = $this->getConnection();
-		$grammar = $conn->getQueryGrammar();
-		$query = new QueryBuilder($conn, $grammar, $conn->getPostProcessor());
-
-		return new HasManyScalar($query->from($targetTable), $this, $targetKey, $foreignKey, $localKey);
+		$query = $this->getConnection()->table($targetTable);
+		return new HasManyScalar($query, $this, $targetKey, $foreignKey, $localKey);
 	}
 
 }

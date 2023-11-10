@@ -9,16 +9,29 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 
 class HasManyScalar extends Relation {
 
-	protected $targetKey;
+	protected ?string $targetKeyKey;
+	protected string $targetValueKey;
 	protected $foreignKey;
 	protected $localKey;
 
 	public function __construct(QueryBuilder $query, Model $parent, string $targetKey, string $foreignKey, ?string $localKey = null) {
 		$this->query = $query;
 		$this->parent = $parent;
-		$this->targetKey = $targetKey;
+		$this->targetKeyKey = $this->targetValueKey = $targetKey;
 		$this->foreignKey = $foreignKey;
 		$this->localKey = $localKey ?: $parent->getKeyName();
+	}
+
+	public function resultKey(?string $key) {
+		$this->targetKeyKey = $key;
+
+		return $this;
+	}
+
+	public function resultValue(string $key) {
+		$this->targetValueKey = $key;
+
+		return $this;
 	}
 
 	/**
@@ -33,7 +46,7 @@ class HasManyScalar extends Relation {
 	 */
 	public function addEagerConstraints(array $models) {
 		$this->query->whereIn($this->foreignKey, array_column($models, $this->localKey));
-		$this->select([$this->foreignKey, $this->targetKey]);
+		$this->select(array_unique([$this->foreignKey, $this->targetKeyKey, $this->targetValueKey]));
 	}
 
 	/**
@@ -50,7 +63,7 @@ class HasManyScalar extends Relation {
 		foreach ($models as $model) {
 			$id = $model->getAttribute($this->localKey);
 			if (isset($results[$id])) {
-				$model->setRelation($relation, $results[$id]->pluck($this->targetKey, $this->targetKey)->all());
+				$model->setRelation($relation, $results[$id]->pluck($this->targetValueKey, $this->targetKeyKey)->all());
 			}
 		}
 
@@ -62,7 +75,8 @@ class HasManyScalar extends Relation {
 	 */
 	public function getResults() {
 		$this->addConstraints();
-		return $this->query->pluck($this->targetKey, $this->targetKey)->all();
+
+		return $this->query->pluck($this->targetValueKey, $this->targetKeyKey)->all();
 	}
 
 	/**
