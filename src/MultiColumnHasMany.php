@@ -16,7 +16,7 @@ class MultiColumnHasMany extends Relation {
 	protected array $columnAliases;
 
 	public function __construct(EloquentBuilder $query, Model $parent, array $columns) {
-        $this->related = $query->getModel();
+		$this->related = $query->getModel();
 		$this->query = $query;
 		$this->parent = $parent;
 		$this->columns = $columns;
