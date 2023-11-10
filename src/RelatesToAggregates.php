@@ -10,8 +10,7 @@ trait RelatesToAggregates {
 	protected function hasAggregateTable(string $table, string $aggregate, string $foreignKey, ?string $localKey = null) {
 		$query = $this->getConnection()->table($table);
 		return (new HasAggregateTable($query, $this, $foreignKey, $localKey))
-			->aggregate($aggregate)
-			->default(0);
+			->aggregate($aggregate);
 	}
 
 	protected function hasAggregate(string $related, string $aggregate, string $foreignKey, ?string $localKey = null) {
