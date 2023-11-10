@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Staudenmeir\LaravelCte\DatabaseServiceProvider;
 
 class MultiColumnHasMany extends Relation {
 
@@ -37,6 +38,15 @@ class MultiColumnHasMany extends Relation {
 	 * Set the constraints for an eager load of the relation.
 	 */
 	public function addEagerConstraints(array $models) {
+		if (class_exists(DatabaseServiceProvider::class)) {
+			$this->addEagerConstraintsWithCte($models);
+		}
+		else {
+			$this->addEagerConstraintsWithOrAnds($models);
+		}
+	}
+
+	protected function addEagerConstraintsWithCte(array $models) {
 		$rows = [];
 		foreach ($models as $model) {
 			$row = [];
@@ -51,6 +61,31 @@ class MultiColumnHasMany extends Relation {
 		$this->query->join(self::TABLE_NAME, function($join) use ($table) {
 			foreach ($this->columns as $localKey => $foreignKey) {
 				$join->on(self::TABLE_NAME . '.' . $this->columnAliases[$localKey], "$table.$foreignKey");
+			}
+		});
+	}
+
+	protected function addEagerConstraintsWithOrAnds(array $models) {
+		$rows = [];
+		$groups = [];
+		foreach ($models as $model) {
+			$row = [];
+			foreach ($this->columns as $localKey => $foreignKey) {
+				$id = (int) $model->getAttribute($localKey);
+				$row[] = $id;
+				$groups[$foreignKey][] = $id;
+			}
+			$rows[] = $row;
+		}
+
+		foreach ($groups as $key => $ids) {
+			$this->query->whereIn($key, array_unique($ids));
+		}
+
+		$sql = '(' . implode(', ', $this->columns) . ') = (' . substr(str_repeat(', ?', count($this->columns)), 2) . ')';
+		$this->query->where(function($query) use ($sql, $rows) {
+			foreach ($rows as $ids) {
+				$query->orWhereRaw($sql, $ids);
 			}
 		});
 	}
