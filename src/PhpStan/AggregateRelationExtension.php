@@ -3,8 +3,8 @@
 namespace rdx\aggrel\PhpStan;
 
 use Illuminate\Database\Eloquent\Model;
-use NunoMaduro\Larastan\Properties\ModelProperty;
-use NunoMaduro\Larastan\Reflection\ReflectionHelper;
+use Larastan\Larastan\Properties\ModelProperty;
+use Larastan\Larastan\Reflection\ReflectionHelper;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ParametersAcceptorSelector;
 use PHPStan\Reflection\PropertiesClassReflectionExtension;
@@ -18,7 +18,7 @@ use PHPStan\Type\UnionType;
 use rdx\aggrel\HasAggregateTable;
 
 /**
- * @see NunoMaduro\Larastan\Properties\ModelRelationsExtension
+ * @see Larastan\Larastan\Properties\ModelRelationsExtension
  */
 
 class AggregateRelationExtension implements PropertiesClassReflectionExtension {
