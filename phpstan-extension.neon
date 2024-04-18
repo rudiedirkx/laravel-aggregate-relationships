@@ -1,0 +1,5 @@
+services:
+	-
+		class: rdx\aggrel\PhpStan\AggregateRelationExtension
+		tags:
+			- phpstan.broker.propertiesClassReflectionExtension

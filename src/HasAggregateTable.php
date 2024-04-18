@@ -9,14 +9,14 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 
 class HasAggregateTable extends Relation {
 
-	protected null|int|string $default = null;
+	protected null|int|float|string $default = null;
 	protected string $aggregate = '1';
 	protected string $foreignKey;
 	protected string $localKey;
 
 	public function __construct(QueryBuilder $query, Model $parent, string $foreignKey, ?string $localKey = null) {
-        $this->query = $query;
-        $this->parent = $parent;
+		$this->query = $query;
+		$this->parent = $parent;
 		$this->foreignKey = $foreignKey;
 		$this->localKey = $localKey ?: $parent->getKeyName();
 	}
