@@ -8,6 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Staudenmeir\LaravelCte\DatabaseServiceProvider;
 
+/**
+ * @template TRelatedModel of Model
+ * @template TDeclaringModel of Model
+ *
+ * @extends Relation<TRelatedModel, TDeclaringModel, Collection<int, TRelatedModel>>
+ */
 class MultiColumnHasMany extends Relation {
 
 	protected const COL_PREFIX = '_mc_';
