@@ -5,7 +5,6 @@ namespace rdx\aggrel\PhpStan;
 use Illuminate\Database\Eloquent\Model;
 use Larastan\Larastan\Properties\ModelProperty;
 use Larastan\Larastan\Reflection\ReflectionHelper;
-use Larastan\Larastan\Types\RelationParserHelper;
 use PHPStan\Analyser\OutOfClassScope;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ParametersAcceptorSelector;
@@ -31,11 +30,6 @@ use rdx\aggrel\MultiColumnHasMany;
  */
 
 final class AggregateRelationExtension implements PropertiesClassReflectionExtension {
-
-	public function __construct(
-		private RelationParserHelper $relationParserHelper,
-		// private CollectionHelper $collectionHelper,
-	) {}
 
 	public function hasProperty(ClassReflection $classReflection, string $propertyName) : bool {
 		if (!$classReflection->isSubclassOf(Model::class)) {
@@ -82,6 +76,7 @@ final class AggregateRelationExtension implements PropertiesClassReflectionExten
 		}
 		elseif ($this->isClass($returnType, MultiColumnHasMany::class)) {
 			$methodReflection = $classReflection->getMethod($propertyName, new OutOfClassScope());
+// dd($methodReflection);
 			$modelClass = $this->relationParserHelper->findModelsInRelationMethod($methodReflection)[0] ?? Model::class;
 
 			$realCollection = (new $modelClass)->newCollection([]);
@@ -99,7 +94,7 @@ final class AggregateRelationExtension implements PropertiesClassReflectionExten
 	}
 
 	protected function getReturnType(ClassReflection $classReflection, string $propertyName) : Type {
-		return ParametersAcceptorSelector::selectSingle($classReflection->getNativeMethod($propertyName)->getVariants())->getReturnType();
+		return $classReflection->getNativeMethod($propertyName)->getVariants()[0]->getReturnType();
 	}
 
 	protected function isClass(Type $returnType, string $className) : bool {
