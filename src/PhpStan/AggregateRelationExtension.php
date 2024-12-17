@@ -5,6 +5,7 @@ namespace rdx\aggrel\PhpStan;
 use Illuminate\Database\Eloquent\Model;
 use Larastan\Larastan\Properties\ModelProperty;
 use Larastan\Larastan\Reflection\ReflectionHelper;
+use Larastan\Larastan\Support\CollectionHelper;
 use PHPStan\Analyser\OutOfClassScope;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ParametersAcceptorSelector;
@@ -30,6 +31,10 @@ use rdx\aggrel\MultiColumnHasMany;
  */
 
 final class AggregateRelationExtension implements PropertiesClassReflectionExtension {
+
+	public function __construct(
+		protected CollectionHelper $collectionHelper,
+	) {}
 
 	public function hasProperty(ClassReflection $classReflection, string $propertyName) : bool {
 		if (!$classReflection->isSubclassOf(Model::class)) {
@@ -75,16 +80,8 @@ final class AggregateRelationExtension implements PropertiesClassReflectionExten
 			$type = new ArrayType(new IntegerType(), $innerType);
 		}
 		elseif ($this->isClass($returnType, MultiColumnHasMany::class)) {
-			$methodReflection = $classReflection->getMethod($propertyName, new OutOfClassScope());
-// dd($methodReflection);
-			$modelClass = $this->relationParserHelper->findModelsInRelationMethod($methodReflection)[0] ?? Model::class;
-
-			$realCollection = (new $modelClass)->newCollection([]);
-
-			$type = new GenericObjectType(get_class($realCollection), [
-				new IntegerType(),
-				new ObjectType($modelClass),
-			]);
+			$modelType = $returnType->getClassReflection()->getActiveTemplateTypeMap()->getType('TRelatedModel');
+			$type = $this->collectionHelper->determineCollectionClass($modelType->getClassName());
 		}
 		else {
 			throw new RuntimeException("What happened??");
