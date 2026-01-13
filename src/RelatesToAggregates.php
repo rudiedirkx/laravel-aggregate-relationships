@@ -35,6 +35,9 @@ trait RelatesToAggregates {
 		return new HasManyScalar($query, $this, $targetKey, $foreignKey, $localKey);
 	}
 
+	/**
+	 * @param array<string, string> $columns
+	 */
 	protected function multiColumnHasMany(string $related, array $columns) : MultiColumnHasMany {
 		$instance = $this->newRelatedInstance($related);
 		return new MultiColumnHasMany($instance->newQuery(), $this, $columns);

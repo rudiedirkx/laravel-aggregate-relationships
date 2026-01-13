@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Arr;
 use Staudenmeir\LaravelCte\DatabaseServiceProvider;
 
 /**
@@ -20,14 +21,12 @@ class MultiColumnHasMany extends Relation {
 	protected const TABLE_NAME = '_mc';
 
 	protected array $columns;
-	protected array $columnAliases;
 
 	public function __construct(EloquentBuilder $query, Model $parent, array $columns) {
 		$this->related = $query->getModel();
 		$this->query = $query;
 		$this->parent = $parent;
 		$this->columns = $columns;
-		$this->columnAliases = array_map(fn(string $name) => self::COL_PREFIX . $name, $this->columns);
 	}
 
 	/**
@@ -36,7 +35,8 @@ class MultiColumnHasMany extends Relation {
 	public function addConstraints() {
 		$table = $this->related->getTable();
 		foreach ($this->columns as $localKey => $foreignKey) {
-			$this->query->where("$table.$foreignKey", $this->parent->getAttribute($localKey));
+			$foreignColumn = str_contains($foreignKey, '.') ? $foreignKey : "$table.$foreignKey";
+			$this->query->where($foreignColumn, $this->parent->getAttribute($localKey));
 		}
 	}
 
@@ -53,6 +53,8 @@ class MultiColumnHasMany extends Relation {
 	}
 
 	protected function addEagerConstraintsWithCte(array $models) {
+		$columnAliases = array_map(fn(string $name) => self::COL_PREFIX . Arr::last(explode('.', $name)), $this->columns);
+
 		$rows = [];
 		foreach ($models as $model) {
 			$row = [];
@@ -61,12 +63,13 @@ class MultiColumnHasMany extends Relation {
 			}
 			$rows[] = $this->formatValuesRow($row);
 		}
-		$this->query->withExpression(self::TABLE_NAME, "VALUES " . implode(', ', array_unique($rows)), $this->columnAliases);
+		$this->query->withExpression(self::TABLE_NAME, "VALUES " . implode(', ', array_unique($rows)), $columnAliases);
 
 		$table = $this->related->getTable();
-		$this->query->join(self::TABLE_NAME, function($join) use ($table) {
+		$this->query->join(self::TABLE_NAME, function($join) use ($table, $columnAliases) {
 			foreach ($this->columns as $localKey => $foreignKey) {
-				$join->on(self::TABLE_NAME . '.' . $this->columnAliases[$localKey], "$table.$foreignKey");
+				$foreignColumn = str_contains($foreignKey, '.') ? $foreignKey : "$table.$foreignKey";
+				$join->on(self::TABLE_NAME . '.' . $columnAliases[$localKey], $foreignColumn);
 			}
 		});
 	}
@@ -104,19 +107,26 @@ class MultiColumnHasMany extends Relation {
 			$this->query->addSelect(array_values($this->columns));
 		}
 
-		return $this->query->get($columns)->groupBy(function(Model $result) {
-			return implode(', ', $result->only($this->columns));
-		});
+		$onlyKeys = array_values(array_map(fn(string $name) => Arr::last(explode('.', $name)), $this->columns));
+		return $this->query
+			->get($columns)
+			->groupBy(function(Model $result) use ($onlyKeys) {
+				return implode(':', $result->only($onlyKeys));
+			});
 	}
 
 	/**
 	 * Match the eagerly loaded results to their parents.
 	 */
 	public function match(array $models, Collection $results, $relation) {
+		$onlyKeys = array_keys($this->columns);
 		foreach ($models as $model) {
-			$id = implode(', ', $model->only(array_keys($this->columns)));
-			if (isset($results[$id])) {
-				$model->$relation->__construct($results[$id]->all());
+			$index = implode(':', $model->only($onlyKeys));
+			if (isset($results[$index])) {
+				$collection = $model->$relation;
+				foreach ($results[$index] as $object) {
+					$collection[] = $object;
+				}
 			}
 		}
 
