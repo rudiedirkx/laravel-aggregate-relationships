@@ -22,7 +22,7 @@ use PHPStan\Type\StringType;
 use PHPStan\Type\Type;
 use PHPStan\Type\UnionType;
 use RuntimeException;
-use rdx\aggrel\HasAggregateTable;
+use rdx\aggrel\HasAggregate;
 use rdx\aggrel\HasManyScalar;
 use rdx\aggrel\MultiColumnHasMany;
 
@@ -52,7 +52,7 @@ final class AggregateRelationExtension implements PropertiesClassReflectionExten
 
 		$returnType = $this->getReturnType($classReflection, $propertyName);
 		if (
-			$this->isClass($returnType, HasAggregateTable::class) ||
+			$this->isClass($returnType, HasAggregate::class) ||
 			$this->isClass($returnType, HasManyScalar::class) ||
 			$this->isClass($returnType, MultiColumnHasMany::class)
 		) {
@@ -65,7 +65,7 @@ final class AggregateRelationExtension implements PropertiesClassReflectionExten
 	public function getProperty(ClassReflection $classReflection, string $propertyName) : PropertyReflection {
 		$returnType = $this->getReturnType($classReflection, $propertyName);
 
-		if ($this->isClass($returnType, HasAggregateTable::class)) {
+		if ($this->isClass($returnType, HasAggregate::class)) {
 			$type = new UnionType([
 				new IntegerType(),
 				new FloatType(),

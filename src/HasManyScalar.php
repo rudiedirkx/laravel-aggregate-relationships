@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 
 /**
- * @template TRelatedModel of Model
- * @template TDeclaringModel of Model
+ * @template TRelatedModel of Model = Model
+ * @template TDeclaringModel of Model = Model
  *
  * @extends Relation<TRelatedModel, TDeclaringModel, Collection<int, scalar>>
  */

@@ -2,6 +2,7 @@
 
 namespace rdx\aggrel;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\Query\Expression;
 
@@ -13,14 +14,24 @@ trait RelatesToAggregates {
 			->aggregate($aggregate);
 	}
 
-	protected function hasAggregate(string $related, string $aggregate, string $foreignKey, ?string $localKey = null) : HasAggregateTable {
-		$instance = new $related();
-		$table = $instance->getTable();
+	/**
+	 * @template TRelated of Model
+	 * @param class-string<TRelated> $related
+	 * @return HasAggregateEloquent<TRelated, $this>
+	 */
+	protected function hasAggregate(string $related, string $aggregate, string $foreignKey, ?string $localKey = null) : HasAggregateEloquent {
+		$query = (new $related())->newModelQuery();
 
-		return $this->hasAggregateTable($table, $aggregate, $foreignKey, $localKey);
+		return (new HasAggregateEloquent($query, $this, $foreignKey, $localKey))
+			->aggregate($aggregate);
 	}
 
-	protected function hasCount(string $related, string $foreignKey, ?string $localKey = null) : HasAggregateTable {
+	/**
+	 * @template TRelated of Model
+	 * @param class-string<TRelated> $related
+	 * @return HasAggregateEloquent<TRelated, $this>
+	 */
+	protected function hasCount(string $related, string $foreignKey, ?string $localKey = null) : HasAggregateEloquent {
 		return $this->hasAggregate($related, 'count(1)', $foreignKey, $localKey)
 			->default(0);
 	}
